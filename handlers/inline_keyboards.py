@@ -19,7 +19,8 @@ def catalog_inline_keyboard():
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="Бравл Старс", callback_data="brawl")],
-            [InlineKeyboardButton(text="Игра 1", callback_data="game1"),InlineKeyboardButton(text="Игра 2", callback_data="game2")]
+            [InlineKeyboardButton(text="Игра 1", callback_data="game1"),InlineKeyboardButton(text="Игра 2", callback_data="game2")],
+            [InlineKeyboardButton(text="Назад в меню", style="primary" ,callback_data="menu")]
         ]
     )
     return keyboard

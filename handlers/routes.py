@@ -15,8 +15,23 @@ router = Router()
 
 # Тут начинаются callback_query
 
+@router.callback_query(lambda c: c.data == "menu")
+async def on_menu(callback: CallbackQuery):
+    await callback.message.edit_media(
+        media=InputMediaPhoto(media=FSInputFile("Images/redline_shop_1.png"),
+                              caption="Для просмотра цен на донаты нажмите на кнопку <b>Каталог</b> под сообщением 😎\n"
+                                      "\n"
+                                      'Чтобы купить донат напишите <a href="https://t.me/Mobile_Game_YT1">Артуру</a> в лс название доната и способ, которым вы хотите его купить. \n'
+                                      '\n'
+                                      'Для покупки акции, которой нет в списке, скиньте <b>фото/скриншот</b> акции <a href="https://t.me/Mobile_Game_YT1">Артуру</a> в лс.',
+                              parse_mode="HTML"),
+        reply_markup=start_inline_keyboard()
+    )
+    await callback.answer()
+
+
 @router.callback_query(lambda c: c.data == "catalog")
-async def on_tg_channel(callback: CallbackQuery):
+async def on_catalog(callback: CallbackQuery):
     # if callback.data == ""
     await callback.message.edit_media(
         media=InputMediaPhoto(media=FSInputFile("Images/redline_shop_1.png"),
@@ -75,7 +90,7 @@ async def on_brawl_stars(callback: CallbackQuery):
     await callback.answer()
 
 @router.callback_query(lambda c: c.data == "67brawl")
-async def on_brawl_stars(callback: CallbackQuery):
+async def on_brawl_67(callback: CallbackQuery):
     await callback.message.edit_media(
         media=InputMediaPhoto(media=FSInputFile("Images/67meme.jpg"),
                               caption="67 гемов - 967 руб"),
@@ -97,6 +112,20 @@ async def on_start(message: Message):
                          ,reply_markup=start_inline_keyboard()
                          ,parse_mode="MarkdownV2")
 
+@router.message(Command("catalog"))
+async def on_catalog_command(message: Message):
+    await message.answer_photo(photo=FSInputFile("Images/redline_shop_1.png"),
+                               caption='<b>Выберите игру из каталога товаров:</b>',
+                               reply_markup=catalog_inline_keyboard(),
+                               parse_mode="HTML")
+
 @router.message(Command("menu"))
-async def on_menu(message: Message):
-    await message.answer('Команды:\n/start - запуск и т д')
+async def on_menu_command(message: Message):
+    await message.answer_photo(media=FSInputFile("Images/redline_shop_1.png"),
+                              caption="Для просмотра цен на донаты нажмите на кнопку <b>Каталог</b> под сообщением 😎\n"
+                                      "\n"
+                                      'Чтобы купить донат напишите <a href="https://t.me/Mobile_Game_YT1">Артуру</a> в лс название доната и способ, которым вы хотите его купить. \n'
+                                      '\n'
+                                      'Для покупки акции, которой нет в списке, скиньте <b>фото/скриншот</b> акции <a href="https://t.me/Mobile_Game_YT1">Артуру</a> в лс.',
+                              reply_markup=start_inline_keyboard(),
+                              parse_mode="HTML")
