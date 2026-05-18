@@ -138,7 +138,7 @@ async def on_catalog_command(message: Message):
 
 @router.message(Command("menu"))
 async def on_menu_command(message: Message):
-    await message.answer_photo(media=FSInputFile("Images/redline_shop_1.png"),
+    await message.answer_photo(photo=FSInputFile("Images/redline_shop_1.png"),
                               caption="Для просмотра цен на донаты нажмите на кнопку <b>Каталог</b> под сообщением 😎\n"
                                       "\n"
                                       'Чтобы купить донат напишите <a href="https://t.me/Mobile_Game_YT1">Артуру</a> в лс название доната и способ, которым вы хотите его купить. \n'
