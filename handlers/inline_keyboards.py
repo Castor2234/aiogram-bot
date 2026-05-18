@@ -30,7 +30,7 @@ def backward_inline_keyboard():
         inline_keyboard=[
             [InlineKeyboardButton(text="Написать Артуру для покупки", style="primary",
                                   url="https://t.me/Mobile_Game_YT1")],
-            [InlineKeyboardButton(text="Назад", style="primary", callback_data="catalog")]
+            [InlineKeyboardButton(text="Назад", style="danger", callback_data="catalog")]
         ]
     )
     return keyboard
