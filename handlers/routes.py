@@ -9,8 +9,39 @@ from aiogram.types import (
     InputMediaPhoto
 )
 from handlers.inline_keyboards import *
+import aiosqlite
 
 router = Router()
+
+# --- База данных
+
+DB_NAME = "redlinebot.sql"
+
+async def init_db():
+    async with aiosqlite.connect(DB_NAME) as db:
+        await db.execute("""
+                        CREATE TABLE IF NOT EXISTS users (
+                                        id INTEGER PRIMARY KEY,
+                                        user_id INTEGER UNIQUE,
+                                        full_name TEXT
+                        )
+                        """)
+        await db.commit()
+
+async def add_user(user_id, full_name):
+    async with aiosqlite.connect(DB_NAME) as db:
+        await db.execute("INSERT INTO users (user_id, full_name) VALUES(?, ?)", (user_id,full_name))
+        await db.commit()
+
+async def get_users():
+    async with aiosqlite.connect(DB_NAME) as db:
+        cursor = await db.execute("SELECT * FROM users")
+        result = await cursor.fetchall()
+        return result
+
+
+# --- Конец базы данных
+
 
 
 # Тут начинаются callback_query
@@ -89,6 +120,9 @@ async def on_brawl_stars(callback: CallbackQuery):
 
 @router.message(Command("start"))
 async def on_start(message: Message):
+    await init_db()
+    await add_user(message.from_user.id, message.from_user.full_name)
+
     await message.answer_photo(photo=FSInputFile("Images/redline_shop_1.png"),caption='Добро пожаловать, вас встречает бот магазина [ReDLine Shop 🤑](https://t.me/mobilegemss) \n'
                          '\n'
                          'Для просмотра цен на донаты нажмите на кнопку Каталог под сообщением 😎 \n'
@@ -97,6 +131,21 @@ async def on_start(message: Message):
                          ,reply_markup=start_inline_keyboard()
                          ,parse_mode="MarkdownV2")
 
+
+
 @router.message(Command("menu"))
 async def on_menu(message: Message):
     await message.answer('Команды:\n/start - запуск и т д')
+
+@router.message(Command("users"))
+async def on_users(message: Message):
+    users = await get_users()
+
+    if not users:
+        await message.answer("В базе нет пользователей")
+        return
+
+    text = "Пользователи в базе:\n\n"
+    for l1,l2,l3 in users:
+        text += f"- {l1} - {l2} - {l3}"
+    await message.answer(text)
