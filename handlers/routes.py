@@ -9,45 +9,29 @@ from aiogram.types import (
     InputMediaPhoto
 )
 from handlers.inline_keyboards import *
-import aiosqlite
 
 router = Router()
-
-# --- База данных
-
-DB_NAME = "redlinebot.sql"
-
-async def init_db():
-    async with aiosqlite.connect(DB_NAME) as db:
-        await db.execute("""
-                        CREATE TABLE IF NOT EXISTS users (
-                                        id INTEGER PRIMARY KEY,
-                                        user_id INTEGER UNIQUE,
-                                        full_name TEXT
-                        )
-                        """)
-        await db.commit()
-
-async def add_user(user_id, full_name):
-    async with aiosqlite.connect(DB_NAME) as db:
-        await db.execute("INSERT INTO users (user_id, full_name) VALUES(?, ?)", (user_id,full_name))
-        await db.commit()
-
-async def get_users():
-    async with aiosqlite.connect(DB_NAME) as db:
-        cursor = await db.execute("SELECT * FROM users")
-        result = await cursor.fetchall()
-        return result
-
-
-# --- Конец базы данных
-
 
 
 # Тут начинаются callback_query
 
+@router.callback_query(lambda c: c.data == "menu")
+async def on_menu(callback: CallbackQuery):
+    await callback.message.edit_media(
+        media=InputMediaPhoto(media=FSInputFile("Images/redline_shop_1.png"),
+                              caption="Для просмотра цен на донаты нажмите на кнопку <b>Каталог</b> под сообщением 😎\n"
+                                      "\n"
+                                      'Чтобы купить донат напишите <a href="https://t.me/Mobile_Game_YT1">Артуру</a> в лс название доната и способ, которым вы хотите его купить. \n'
+                                      '\n'
+                                      'Для покупки акции, которой нет в списке, скиньте <b>фото/скриншот</b> акции <a href="https://t.me/Mobile_Game_YT1">Артуру</a> в лс.',
+                              parse_mode="HTML"),
+        reply_markup=start_inline_keyboard()
+    )
+    await callback.answer()
+
+
 @router.callback_query(lambda c: c.data == "catalog")
-async def on_tg_channel(callback: CallbackQuery):
+async def on_catalog(callback: CallbackQuery):
     # if callback.data == ""
     await callback.message.edit_media(
         media=InputMediaPhoto(media=FSInputFile("Images/redline_shop_1.png"),
@@ -57,18 +41,55 @@ async def on_tg_channel(callback: CallbackQuery):
     )
     await callback.answer()
 
-@router.callback_query(lambda c: c.data == "game1")
-async def on_brawl_stars(callback: CallbackQuery):
-    await callback.message.edit_caption(
-        caption="game1 цены",
+@router.callback_query(lambda c: c.data == "clash_royal")
+async def on_brawl_67(callback: CallbackQuery):
+    await callback.message.edit_media(
+        media=InputMediaPhoto(media=FSInputFile("Images/clash_royale.jpg"),
+                              caption="🤩 Новый сезон в Clash Royale 🤩\n"
+                                      "\n"
+                                      "Способы покупки Pass Royale:\n"
+                                      "📩 Заходом по почте и коду:\n"
+                                      "• Pass Royale — 2399 ₽ / 90 BYN\n"
+                                      "🛒 Через Supercell Store:\n"
+                                      "• Pass Royale — 2599 ₽ / 97 BYN\n"
+                                      "🎁 Подарком через Supercell ID:\n"
+                                      "• Pass Royale — 3299 ₽ / 125 BYN\n"
+                                      "\n"
+                                      "Для покупки любой другой акции отправьте фото акции <a href='https://t.me/Mobile_Game_YT1'>Артуру</a> при покупке"
+                                      ,parse_mode="HTML"),
         reply_markup=backward_inline_keyboard()
     )
     await callback.answer()
 
-@router.callback_query(lambda c: c.data == "game2")
-async def on_brawl_stars(callback: CallbackQuery):
-    await callback.message.edit_caption(
-        caption="game2 цены",
+@router.callback_query(lambda c: c.data == "sim_city")
+async def on_brawl_67(callback: CallbackQuery):
+    await callback.message.edit_media(
+        media=InputMediaPhoto(media=FSInputFile("Images/SimCity.jpg"),
+                              caption="👊Новый Пропуск в Sim City Buildit👊"
+                                      "\n"
+                                      "• Абонемент мэра - 1399 руб - 52 BYN\n"
+                                      "Абонемент мэра+ - 2199 руб - 82 BYN\n"
+                                      "Повышение сезонной валюты - 1899 руб - 74 byn\n"
+                                      '\n'
+                                      '• Элитный абонемент By 1 - 1199 руб - 45 BYN \n'
+                                      'Элитный абонемент By 2 - 1999 руб - 80 BYN \n'
+                                      'Элитный абонемент By 3 - 3599 руб - 137 BYN \n'
+                                      '\n'
+                                      '• 250 SimCash - 1199 руб - 45 BYN\n'
+                                        '550 SimCash - 2199 руб - 82 BYN\n'
+                                        '1300 SimCash - 3999 руб - 148 BYN\n'
+                                        '2625 SimCash - 7499 руб - 277 BYN\n'
+                                        '4000 SimCash - 10499 руб - 387 BYN\n'
+                                        '8500 SimCash - 18999 руб - 698 BYN\n'
+                                      '\n'
+                                      '• 1800 Симолеоны - 599 руб - 23 BYN\n'
+                                        '19.200 Симолеоны - 1499 руб - 56 BYN\n'
+                                        '68.000 Симолеоны - 3399 руб - 125 BYN\n'
+                                        '129.600 Симолеоны - 5499 руб - 203 BYN\n'
+                                        '228.000 Симолеоны - 8499 руб - 313 BYN\n'
+                                        '480.000 Симолеоны - 12999 руб - 479 BYN\n'
+                                      "Любые другие акции также доступны для покупки"
+                                      ),
         reply_markup=backward_inline_keyboard()
     )
     await callback.answer()
@@ -78,25 +99,25 @@ async def on_brawl_stars(callback: CallbackQuery):
     await callback.message.edit_media(
         media=InputMediaPhoto(media=FSInputFile("Images/brawlgems.jpg"),
                               caption='Заходом на аккаунт через почту:\n'
-                            'Бравл Пасс - 1799 руб - 70 BYN\n'
-                            'Бравл Пасс Плюс - 2599 руб - 100 BYN\n'
-                            'Улучшение до Бравл Пасс Плюс - 999 руб - 40 BYN\n'
-                            'Про Пасс - 4999 руб - 190 BYN\n'
+                            '• Бравл Пасс - 1799 руб - 70 BYN\n'
+                            '• Бравл Пасс Плюс - 2599 руб - 100 BYN\n'
+                            '• Улучшение до Бравл Пасс Плюс - 999 руб - 40 BYN\n'
+                            '• Про Пасс - 4999 руб - 190 BYN\n'
                             '\n'
                             'Через Supercell Store:\n'
-                            'Brawl Pass - 1999 руб - 80 BYN\n'
-                            'Brawl Pass Plus - 2899 руб - 112 BYN\n'
-                            'Про Пасс - 5499 руб - 210 BYN\n'
+                            '• Brawl Pass - 1999 руб - 80 BYN\n'
+                            '• Brawl Pass Plus - 2899 руб - 112 BYN\n'
+                            '• Про Пасс - 5499 руб - 210 BYN\n'
                             '\n'
                             'Подарком через Supercell Id:\n'
-                            'Brawl Pass Plus - 3999 руб - 151 BYN\n'
-                            'Про Пасс - 6999 руб - 265 BYN\n'
-                            '30 гемов - 449 руб - 18 BYN\n'
-                            '80 гемов - 999 руб - 38 BYN\n'
-                            '170 гемов - 1999 руб - 75 BYN\n'
-                            '360 гемов - 3937 руб - 147 BYN\n'
-                            '950 гемов - 9907 руб - 365 BYN\n'
-                            '2000 гемов - 19927 руб - 735 BYN\n'
+                            '• Brawl Pass Plus - 3999 руб - 151 BYN\n'
+                            '• Про Пасс - 6999 руб - 265 BYN\n'
+                            '• 30 гемов - 449 руб - 18 BYN\n'
+                            '• 80 гемов - 999 руб - 38 BYN\n'
+                            '• 170 гемов - 1999 руб - 75 BYN\n'
+                            '• 360 гемов - 3937 руб - 147 BYN\n'
+                            '• 950 гемов - 9907 руб - 365 BYN\n'
+                            '• 2000 гемов - 19927 руб - 735 BYN\n'
                             '\n'
                             'Для покупки любой другой акции отправьте фото акции <a href="https://t.me/Mobile_Game_YT1">Артуру</a> при покупке',
                               parse_mode="HTML"
@@ -106,7 +127,7 @@ async def on_brawl_stars(callback: CallbackQuery):
     await callback.answer()
 
 @router.callback_query(lambda c: c.data == "67brawl")
-async def on_brawl_stars(callback: CallbackQuery):
+async def on_brawl_67(callback: CallbackQuery):
     await callback.message.edit_media(
         media=InputMediaPhoto(media=FSInputFile("Images/67meme.jpg"),
                               caption="67 гемов - 967 руб"),
@@ -120,9 +141,6 @@ async def on_brawl_stars(callback: CallbackQuery):
 
 @router.message(Command("start"))
 async def on_start(message: Message):
-    await init_db()
-    await add_user(message.from_user.id, message.from_user.full_name)
-
     await message.answer_photo(photo=FSInputFile("Images/redline_shop_1.png"),caption='Добро пожаловать, вас встречает бот магазина [ReDLine Shop 🤑](https://t.me/mobilegemss) \n'
                          '\n'
                          'Для просмотра цен на донаты нажмите на кнопку Каталог под сообщением 😎 \n'
@@ -131,21 +149,20 @@ async def on_start(message: Message):
                          ,reply_markup=start_inline_keyboard()
                          ,parse_mode="MarkdownV2")
 
-
+@router.message(Command("catalog"))
+async def on_catalog_command(message: Message):
+    await message.answer_photo(photo=FSInputFile("Images/redline_shop_1.png"),
+                               caption='<b>Выберите игру из каталога товаров:</b>',
+                               reply_markup=catalog_inline_keyboard(),
+                               parse_mode="HTML")
 
 @router.message(Command("menu"))
-async def on_menu(message: Message):
-    await message.answer('Команды:\n/start - запуск и т д')
-
-@router.message(Command("users"))
-async def on_users(message: Message):
-    users = await get_users()
-
-    if not users:
-        await message.answer("В базе нет пользователей")
-        return
-
-    text = "Пользователи в базе:\n\n"
-    for l1,l2,l3 in users:
-        text += f"- {l1} - {l2} - {l3}"
-    await message.answer(text)
+async def on_menu_command(message: Message):
+    await message.answer_photo(photo=FSInputFile("Images/redline_shop_1.png"),
+                              caption="Для просмотра цен на донаты нажмите на кнопку <b>Каталог</b> под сообщением 😎\n"
+                                      "\n"
+                                      'Чтобы купить донат напишите <a href="https://t.me/Mobile_Game_YT1">Артуру</a> в лс название доната и способ, которым вы хотите его купить. \n'
+                                      '\n'
+                                      'Для покупки акции, которой нет в списке, скиньте <b>фото/скриншот</b> акции <a href="https://t.me/Mobile_Game_YT1">Артуру</a> в лс.',
+                              reply_markup=start_inline_keyboard(),
+                              parse_mode="HTML")

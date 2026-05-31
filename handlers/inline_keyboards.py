@@ -18,8 +18,9 @@ def start_inline_keyboard():
 def catalog_inline_keyboard():
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="Бравл Старс", callback_data="brawl")],
-            [InlineKeyboardButton(text="Игра 1", callback_data="game1"),InlineKeyboardButton(text="Игра 2", callback_data="game2")]
+            [InlineKeyboardButton(text="Brawl Stars", callback_data="brawl")],
+            [InlineKeyboardButton(text="Clash Royale", callback_data="clash_royal"),InlineKeyboardButton(text="Sim City Buildit", callback_data="sim_city")],
+            [InlineKeyboardButton(text="Назад в меню", style="primary" ,callback_data="menu")]
         ]
     )
     return keyboard
@@ -29,7 +30,7 @@ def backward_inline_keyboard():
         inline_keyboard=[
             [InlineKeyboardButton(text="Написать Артуру для покупки", style="primary",
                                   url="https://t.me/Mobile_Game_YT1")],
-            [InlineKeyboardButton(text="Назад", style="primary", callback_data="catalog")]
+            [InlineKeyboardButton(text="Назад", style="danger", callback_data="catalog")]
         ]
     )
     return keyboard
