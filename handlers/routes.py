@@ -9,8 +9,39 @@ from aiogram.types import (
     InputMediaPhoto
 )
 from handlers.inline_keyboards import *
+import aiosqlite
+
 
 router = Router()
+
+# --- База данных
+
+DB_NAME = "redlinebot.sql"
+
+async def init_db():
+    async with aiosqlite.connect(DB_NAME) as db:
+        await db.execute("""
+                        CREATE TABLE IF NOT EXISTS users (
+                                        id INTEGER PRIMARY KEY,
+                                        user_id INTEGER UNIQUE,
+                                        full_name TEXT
+                        )
+                        """)
+        await db.commit()
+
+async def add_user(user_id, full_name):
+    async with aiosqlite.connect(DB_NAME) as db:
+        await db.execute("INSERT INTO users (user_id, full_name) VALUES(?, ?)", (user_id,full_name))
+        await db.commit()
+
+async def get_users():
+    async with aiosqlite.connect(DB_NAME) as db:
+        cursor = await db.execute("SELECT * FROM users")
+        result = await cursor.fetchall()
+        return result
+
+
+# --- Конец базы данных
 
 
 # Тут начинаются callback_query
