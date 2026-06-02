@@ -219,7 +219,7 @@ async def on_users(message: Message):
 
         text = "Пользователи в базе:\n\n"
         for l1,l2,l3 in users:
-            text += f"- {l1} - {l2} - {l3}"
+            text += f"- {l1} - {l2} - {l3}\n"
         await message.answer(text)
     else:
         await message.answer("Нет доступа к админ панели")
