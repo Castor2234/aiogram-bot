@@ -4,8 +4,6 @@ from aiogram.filters import Command, callback_data
 from aiogram.types import (
     Message,
     CallbackQuery,
-    ReplyKeyboardMarkup,
-    KeyboardButton,
     FSInputFile,
     InputMediaPhoto
 )
@@ -17,7 +15,6 @@ ADM_IDS=getenv('ADMIN_ID')
 
 from handlers.inline_keyboards import *
 import aiosqlite
-
 
 router = Router()
 
