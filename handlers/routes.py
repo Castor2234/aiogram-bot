@@ -45,7 +45,7 @@ async def get_users():
     async with aiosqlite.connect(DB_NAME) as db:
         cursor = await db.execute("SELECT COUNT(DISTINCT id) FROM users")
         result = await cursor.fetchall()
-        return str(result)
+        return result
 
 
 # --- Конец базы данных
@@ -217,6 +217,6 @@ async def on_users(message: Message):
             await message.answer("В базе нет пользователей")
             return
         else:
-            await message.answer('Количество пользователей в базе:\n' + users[2])
+            await message.answer('Количество пользователей в базе:\n' + str(users[0][0]))
     else:
         await message.answer("Нет доступа к админ панели")
