@@ -1,5 +1,5 @@
 
-from aiogram import Router, F
+from aiogram import Router
 from aiogram.filters import Command
 from aiogram.types import (
     Message,
@@ -250,7 +250,6 @@ async def on_users(message: Message):
 @router.message(Command("broadcast"))
 async def on_broadcast(message: Message,state: FSMContext):
     if str(message.from_user.id) in ADM_IDS:
-        chats = await get_chats()
         await message.answer('Введите сообщение, которое будет переслано всем пользователям бота.')
         await state.set_state(Form.br_message)
     else:
@@ -273,7 +272,18 @@ async def broadcast_confirm(message: Message,state: FSMContext):
         data = await state.get_data()
         br_text_id = data.get('br_id')
         await state.clear()
+        chats = await get_chats()
+        count=0
         await message.answer('Рассылка в процессе...')
-        await message.bot.copy_message(chat_id=message.chat.id,from_chat_id=message.chat.id,message_id=br_text_id)
+        for chat in chats:
+            try:
+                await message.bot.copy_message(chat_id=chat, from_chat_id=message.chat.id,message_id=br_text_id)
+                count+=1
+                await sleep(0.05)
+            except Exception as e:
+                pass
+
+
+
 
 
