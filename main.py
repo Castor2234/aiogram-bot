@@ -12,9 +12,6 @@ dp=Dispatcher()
 dp.include_router(router)
 
 
-
-
-
 async def main():
     bot=Bot(token=TOKEN)
 

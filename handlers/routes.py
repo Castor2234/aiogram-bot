@@ -1,25 +1,27 @@
 
-from aiogram import Router
-from aiogram.filters import Command, callback_data
+from aiogram import Router, F
+from aiogram.filters import Command
 from aiogram.types import (
     Message,
     CallbackQuery,
     ReplyKeyboardMarkup,
     KeyboardButton,
     FSInputFile,
-    InputMediaPhoto
+    InputMediaPhoto,
 )
+from aiogram.fsm.state import State, StatesGroup
+from aiogram.fsm.context import FSMContext
+from handlers.inline_keyboards import *
+
+from asyncio import sleep
 
 from os import getenv
 from dotenv import load_dotenv
 load_dotenv()
 ADM_IDS=getenv('ADMIN_ID')
 
-from handlers.inline_keyboards import *
+
 import aiosqlite
-
-
-router = Router()
 
 # --- База данных
 
@@ -48,7 +50,31 @@ async def get_users():
         return result
 
 
+async def get_chats():
+    async with aiosqlite.connect(DB_NAME) as db:
+        cursor = await db.execute("SELECT user_id FROM users")
+        result = await cursor.fetchall()
+
+        if not result:
+            return 0
+
+        chats = []
+        for i in result:
+            chats.append(i[0])
+        return chats
+
+
 # --- Конец базы данных
+
+router = Router()
+
+# --- FSM context machine начало
+
+class Form(StatesGroup):
+    br_message = State()
+    yes_or_no = State()
+
+# --- FSM context machine конец
 
 
 # Тут начинаются callback_query
@@ -216,7 +242,38 @@ async def on_users(message: Message):
         if not users:
             await message.answer("В базе нет пользователей")
             return
-        else:
-            await message.answer('Количество пользователей в базе:\n' + str(users[0][0]))
+        await message.answer('Количество пользователей в базе:\n' + str(users[0][0]))
     else:
         await message.answer("Нет доступа к админ панели")
+
+
+@router.message(Command("broadcast"))
+async def on_broadcast(message: Message,state: FSMContext):
+    if str(message.from_user.id) in ADM_IDS:
+        chats = await get_chats()
+        await message.answer('Введите сообщение, которое будет переслано всем пользователям бота.')
+        await state.set_state(Form.br_message)
+    else:
+        await message.answer("Нет доступа к админ панели")
+
+
+@router.message(Form.br_message)
+async def broadcast_message(message: Message,state: FSMContext):
+    await state.update_data(br_id=message.message_id)
+    await message.copy_to(chat_id=message.chat.id)
+    await message.answer('<b>Вы уверены, что хотите переслать это сообщение? Напишите Рассылка, если уверены.</b>',parse_mode='HTML')
+    await state.set_state(Form.yes_or_no)
+
+@router.message(Form.yes_or_no)
+async def broadcast_confirm(message: Message,state: FSMContext):
+    if message.text.lower() != 'рассылка':
+        await message.answer(f'Рассылка не была подтверждена. {message.text.lower()}')
+        await state.clear()
+    else:
+        data = await state.get_data()
+        br_text_id = data.get('br_id')
+        await state.clear()
+        await message.answer('Рассылка в процессе...')
+        await message.bot.copy_message(chat_id=message.chat.id,from_chat_id=message.chat.id,message_id=br_text_id)
+
+
