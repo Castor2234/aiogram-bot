@@ -3,6 +3,7 @@ import asyncio
 from aiogram import Bot, Dispatcher
 from dotenv import load_dotenv
 from handlers.routes import router
+import logging
 
 load_dotenv()
 TOKEN=getenv('BOT_TOKEN')
@@ -13,6 +14,13 @@ dp.include_router(router)
 
 
 async def main():
+    logging.basicConfig(
+        level=logging.WARNING,
+        filename='server.log',
+        filemode='a',
+        format='%(asctime)s [%(levelname)s] (%(filename)s:%(lineno)d) - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
     bot=Bot(token=TOKEN)
 
     print('Starting...')

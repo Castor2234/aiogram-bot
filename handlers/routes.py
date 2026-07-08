@@ -11,9 +11,12 @@ from aiogram.types import (
 )
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
+from aiogram.exceptions import TelegramRetryAfter, TelegramForbiddenError
 from handlers.inline_keyboards import *
 
 from asyncio import sleep
+
+import logging
 
 from os import getenv
 from dotenv import load_dotenv
@@ -42,6 +45,12 @@ async def add_user(user_id, full_name):
     async with aiosqlite.connect(DB_NAME) as db:
         await db.execute("INSERT OR IGNORE INTO users (user_id, full_name) VALUES(?, ?)", (user_id,full_name))
         await db.commit()
+
+async def remove_user(user_id):
+    async with aiosqlite.connect(DB_NAME) as db:
+        await db.execute("DELETE FROM users WHERE user_id = ?",(user_id,))
+        await db.commit()
+
 
 async def get_users():
     async with aiosqlite.connect(DB_NAME) as db:
@@ -247,6 +256,8 @@ async def on_users(message: Message):
         await message.answer("Нет доступа к админ панели")
 
 
+# Broadcast начало
+
 @router.message(Command("broadcast"))
 async def on_broadcast(message: Message,state: FSMContext):
     if str(message.from_user.id) in ADM_IDS:
@@ -274,16 +285,37 @@ async def broadcast_confirm(message: Message,state: FSMContext):
         await state.clear()
         chats = await get_chats()
         count=0
+        remove_count=0
         await message.answer('Рассылка в процессе...')
-        for chat in chats:
+        for user_id in chats:
             try:
-                await message.bot.copy_message(chat_id=chat, from_chat_id=message.chat.id,message_id=br_text_id)
+                await message.bot.copy_message(chat_id=user_id, from_chat_id=message.chat.id,message_id=br_text_id)
                 count+=1
                 await sleep(0.05)
+            except TelegramForbiddenError:
+                logging.warning(f"Target [ID:{user_id}]: blocked by user. Removing from DB.")
+                await remove_user(user_id)
+                remove_count+=1
+
+
+
+            except TelegramRetryAfter as e:
+                logging.error(f"Target [ID:{user_id}]: Flood limit hit. Sleeping for {e.retry_after}s")
+                await sleep(e.retry_after)
+
+                try:
+                    await message.bot.copy_message(chat_id=user_id, from_chat_id=message.chat.id,message_id=br_text_id)
+                    count += 1
+                except Exception:
+                    logging.error(f"Target [ID:{user_id}]: Second attempt failed.")
+
             except Exception as e:
-                pass
+                logging.error(f"Target [ID:{user_id}]: Failed to send message. Error: {e}")
 
 
+        await message.answer(f"Рассылка завершена. Сообщение успешно отправлено {count} пользователям. Из базы данных удалено {remove_count} пользователей.")
 
+
+# Broadcast конец
 
 
