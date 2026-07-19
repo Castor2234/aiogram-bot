@@ -208,6 +208,27 @@ async def on_brawl_67(callback: CallbackQuery):
     )
     await callback.answer()
 
+@router.callback_query(lambda c: c.data == "stalker2")
+async def on_brawl_stars(callback: CallbackQuery):
+    await callback.message.edit_media(
+        media=InputMediaPhoto(media=FSInputFile("Images/stalker2.jpg"),
+                              caption='Хочешь купить S.T.A.L.K.E.R. 2: Heart of Chornobyl в России или Беларуси? Поможем быстро оформить игру на твой Steam-аккаунт или создадим новый аккаунт с нужным регионом.\n'
+                            '• Цены:\n'
+                            'Standard Edition — 8999 ₽ - 350 BYN\n'
+                            'Deluxe Edition — 12499 ₽ - 480 BYN\n'
+                            'Ultimate Edition — 15999 ₽ - 595 BYN\n'
+                            '\n'
+                            '<b>Для покупки необходимо:</b>\n'
+                            '• Сменить регион вашего Steam-аккаунта 1999 ₽ / 75 BYN\n\n'
+                            'или\n\n'
+                            '• Создать новый Steam-аккаунт с нужным регионом на ваши данные:\n'
+                            '1499 ₽ / 58 BYN — при покупке игры\n'
+                            '1799 ₽ / 68 BYN — без покупки игры\n',
+                              parse_mode="HTML"
+                              ),
+        reply_markup=backward_inline_keyboard()
+    )
+    await callback.answer()
 
 
 # Отсюда начинаются команды

@@ -20,6 +20,7 @@ def catalog_inline_keyboard():
         inline_keyboard=[
             [InlineKeyboardButton(text="Brawl Stars", callback_data="brawl")],
             [InlineKeyboardButton(text="Clash Royale", callback_data="clash_royal"),InlineKeyboardButton(text="Sim City Buildit", callback_data="sim_city")],
+            [InlineKeyboardButton(text="☢ S.T.A.L.K.E.R. 2 ☢", callback_data="stalker2")],
             [InlineKeyboardButton(text="Назад в меню", style="primary" ,callback_data="menu")]
         ]
     )
