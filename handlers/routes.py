@@ -8,6 +8,7 @@ from aiogram.types import (
     KeyboardButton,
     FSInputFile,
     InputMediaPhoto,
+    BufferedInputFile
 )
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
@@ -29,6 +30,7 @@ import aiosqlite
 # --- База данных
 
 DB_NAME = "redlinebot.sql"
+DB_MESSAGES_NAME = "messages.sql"
 
 async def init_db():
     async with aiosqlite.connect(DB_NAME) as db:
@@ -40,6 +42,29 @@ async def init_db():
                         )
                         """)
         await db.commit()
+    async with aiosqlite.connect(DB_MESSAGES_NAME) as db1:
+        await db1.execute("""
+                        CREATE TABLE IF NOT EXISTS messages (
+                                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                        full_name TEXT,
+                                        message TEXT
+                        )
+                        """)
+        await db1.commit()
+
+async def add_message_to_db(full_name: str, message_text: str):
+    async with aiosqlite.connect(DB_MESSAGES_NAME) as db:
+        await db.execute(
+            "INSERT INTO messages (full_name, message) VALUES (?, ?)",
+            (full_name, message_text)
+        )
+        await db.commit()
+
+async def get_messages():
+    async with aiosqlite.connect(DB_MESSAGES_NAME) as db:
+        cursor = await db.execute("SELECT full_name, message FROM messages")
+        result = await cursor.fetchall()
+        return result
 
 async def add_user(user_id, full_name):
     async with aiosqlite.connect(DB_NAME) as db:
@@ -213,10 +238,10 @@ async def on_brawl_stars(callback: CallbackQuery):
     await callback.message.edit_media(
         media=InputMediaPhoto(media=FSInputFile("Images/stalker2.jpg"),
                               caption='Хочешь купить S.T.A.L.K.E.R. 2: Heart of Chornobyl в России или Беларуси? Поможем быстро оформить игру на твой Steam-аккаунт или создадим новый аккаунт с нужным регионом.\n'
-                            '• Цены:\n'
-                            'Standard Edition — 8999 ₽ - 350 BYN\n'
-                            'Deluxe Edition — 12499 ₽ - 480 BYN\n'
-                            'Ultimate Edition — 15999 ₽ - 595 BYN\n'
+                            'Цены:\n'
+                            '• Standard Edition — 8999 ₽ - 350 BYN\n'
+                            '• Deluxe Edition — 12499 ₽ - 480 BYN\n'
+                            '• Ultimate Edition — 15999 ₽ - 595 BYN\n'
                             '\n'
                             '<b>Для покупки необходимо:</b>\n'
                             '• Сменить регион вашего Steam-аккаунта 1999 ₽ / 75 BYN\n\n'
@@ -230,6 +255,64 @@ async def on_brawl_stars(callback: CallbackQuery):
     )
     await callback.answer()
 
+@router.callback_query(lambda c: c.data == "tiktok")
+async def on_tiktok(callback: CallbackQuery):
+    await callback.message.edit_media(
+        media=InputMediaPhoto(media=FSInputFile("Images/tiktok.jpg"),
+                              caption="""
+Валюта:
+• 70 монет - 799 руб - 31 BYN
+• 330 монет - 1599 руб - 61 BYN
+• 660 монет - 2799 руб - 106 BYN
+• 1321 монет - 4999 руб - 188 BYN
+• 3500 монет - 12499 руб - 465 BYN
+• 7000 монет - 24999 руб - 920 BYN
+
+<b>Возможна покупка любого количества, при большем количестве лучше курс</b>
+""",
+                              parse_mode="HTML"
+                              ),
+        reply_markup=backward_inline_keyboard()
+    )
+    await callback.answer()
+
+@router.callback_query(lambda c: c.data == "telegram")
+async def on_telegram(callback: CallbackQuery):
+    await callback.message.edit_media(
+        media=InputMediaPhoto(media=FSInputFile("Images/telegram.jpg"),
+                              caption="""
+Звезды по id - @ или подарком:
+• 50 звезд - 699 руб - 25 BYN
+• 100 звезд - 800 руб - 32 BYN
+• 150 звезд - 1199 руб - 46 BYN
+• 250 звезд - 1749 руб - 68 BYN
+• 500 звезд - 2999 руб - 117 BYN
+• 1000 звезд - 5999 руб - 225 BYN
+• 2500 звезд - 12499 руб - 470 BYN
+• 5000 звезд - 24999 руб - 935 BYN
+
+<b>Возможна покупка любого количества, при большем количестве лучше курс</b>
+
+Telegram премиум:
+• 1 месяц заходом - 1499 руб - 55 BYN
+Подарком:
+• 3 месяца  - 3999 руб - 150 BYN
+• 6 месяца - 4999 руб - 188 BYN
+• 1 год - 9999 руб - 375 BYN
+
+• Буст Telegram каналов: 5 шт 1 месяц - 1499 руб - 55 BYN
+Подробнее, любое кол-во и срок обговариваемый в лс
+
+Всё необходимое для вашего Telegram — в одном месте 💙
+⭐️ Telegram Stars — покупайте звёзды для подарков, оплаты контента и сервисов внутри Telegram.
+💎Telegram Premium — больше возможностей, повышенные лимиты, эксклюзивные функции и оформление.
+🚀Telegram Бусты — прокачивайте каналы и открывайте дополнительные возможности.
+""",
+                              parse_mode="HTML"
+                              ),
+        reply_markup=backward_inline_keyboard()
+    )
+    await callback.answer()
 
 # Отсюда начинаются команды
 
@@ -276,6 +359,24 @@ async def on_users(message: Message):
     else:
         await message.answer("Нет доступа к админ панели")
 
+@router.message(Command("messages"))
+async def on_messages(message: Message):
+    if str(message.from_user.id) in ADM_IDS:
+        rows = await get_messages()
+
+        if not rows:
+            await message.answer("В базе нет сообщений")
+            return
+
+        content = "\n".join(f"{full_name}: {text}" for full_name, text in rows)
+        file = BufferedInputFile(content.encode("utf-8"), filename="messages.txt")
+
+        await message.answer_document(
+            document=file,
+            caption=f"Всего сообщений: {len(rows)}"
+        )
+    else:
+        await message.answer("Нет доступа к админ панели")
 
 # Broadcast начало
 
@@ -340,3 +441,6 @@ async def broadcast_confirm(message: Message,state: FSMContext):
 # Broadcast конец
 
 
+@router.message()
+async def on_any_message(message: Message):
+    await add_message_to_db(message.from_user.full_name, message.text)

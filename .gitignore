@@ -4,5 +4,5 @@
 .vscode
 __pycache__/
 my-venv/
-.sql
-.log
+*.sql
+*.log
