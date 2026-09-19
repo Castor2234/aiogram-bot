@@ -314,6 +314,25 @@ Telegram премиум:
     )
     await callback.answer()
 
+@router.callback_query(lambda c: c.data == "gpt")
+async def on_gpt(callback: CallbackQuery):
+    await callback.message.edit_media(
+        media=InputMediaPhoto(media=FSInputFile("Images/gpt.jpg"),
+                              caption="""
+1 Месяц:
+• Plus подписка на ваш аккаунт: 3999 руб - 150 BYN
+• Новый аккаунт: 2999 руб - 115 BYN
+
+<b>Для покупки также доступны версии: Go, Pro, Business. На любой срок от 1 месяца до 1 года и любое кол-во аккаунтов!</b>
+
+Хочешь больше возможностей от ChatGPT? Подключай ChatGPT Plus и используй ИИ для работы, учёбы, контента, идей, текстов, кода и других задач 🚀
+""",
+                              parse_mode="HTML"
+                              ),
+        reply_markup=backward_inline_keyboard()
+    )
+    await callback.answer()
+
 # Отсюда начинаются команды
 
 @router.message(Command("start"))
