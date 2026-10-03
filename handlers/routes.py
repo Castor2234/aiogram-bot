@@ -320,8 +320,7 @@ async def on_gpt(callback: CallbackQuery):
         media=InputMediaPhoto(media=FSInputFile("Images/gpt.jpg"),
                               caption="""
 1 Месяц:
-• Plus подписка на ваш аккаунт: 3999 руб - 150 BYN
-• Новый аккаунт: 2999 руб - 115 BYN
+• Plus подписка на ваш аккаунт: 4499 руб - 170 BYN
 
 <b>Для покупки также доступны версии: Go, Pro, Business. На любой срок от 1 месяца до 1 года и любое кол-во аккаунтов!</b>
 
