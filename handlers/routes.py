@@ -84,6 +84,13 @@ async def get_users():
         return result
 
 
+async def get_all_users():
+    async with aiosqlite.connect(DB_NAME) as db:
+        cursor = await db.execute("SELECT user_id, full_name FROM users")
+        result = await cursor.fetchall()
+        return result
+
+
 async def get_chats():
     async with aiosqlite.connect(DB_NAME) as db:
         cursor = await db.execute("SELECT user_id FROM users")
@@ -369,11 +376,19 @@ async def on_menu_command(message: Message):
 async def on_users(message: Message):
     if str(message.from_user.id) in ADM_IDS:
         users = await get_users()
+        all_users = await get_all_users()
 
         if not users:
             await message.answer("В базе нет пользователей")
             return
-        await message.answer('Количество пользователей в базе:\n' + str(users[0][0]))
+
+        content = "\n".join(f"{user_id} - {full_name}" for user_id, full_name in all_users)
+        file = BufferedInputFile(content.encode("utf-8"), filename="users.txt")
+
+        await message.answer_document(
+            document=file,
+            caption=f"Всего пользователей: {len(all_users)}"
+        )
     else:
         await message.answer("Нет доступа к админ панели")
 
