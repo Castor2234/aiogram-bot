@@ -53,10 +53,16 @@ async def init_db():
         await db1.execute("""
                         CREATE TABLE IF NOT EXISTS messages (
                                         id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                        user_id INTEGER,
                                         full_name TEXT,
                                         message TEXT
                         )
                         """)
+        # Миграция: добавляем колонку user_id в уже существующую таблицу
+        cursor = await db1.execute("PRAGMA table_info(messages)")
+        msg_columns = [row[1] for row in await cursor.fetchall()]
+        if "user_id" not in msg_columns:
+            await db1.execute("ALTER TABLE messages ADD COLUMN user_id INTEGER")
         await db1.commit()
 
 async def ensure_schema():
@@ -66,17 +72,19 @@ async def ensure_schema():
         await init_db()
         _schema_ready = True
 
-async def add_message_to_db(full_name: str, message_text: str):
+async def add_message_to_db(user_id: int, full_name: str, message_text: str):
+    await ensure_schema()
     async with aiosqlite.connect(DB_MESSAGES_NAME) as db:
         await db.execute(
-            "INSERT INTO messages (full_name, message) VALUES (?, ?)",
-            (full_name, message_text)
+            "INSERT INTO messages (user_id, full_name, message) VALUES (?, ?, ?)",
+            (user_id, full_name, message_text)
         )
         await db.commit()
 
 async def get_messages():
+    await ensure_schema()
     async with aiosqlite.connect(DB_MESSAGES_NAME) as db:
-        cursor = await db.execute("SELECT full_name, message FROM messages")
+        cursor = await db.execute("SELECT user_id, full_name, message FROM messages")
         result = await cursor.fetchall()
         return result
 
@@ -468,7 +476,7 @@ async def on_messages(message: Message):
             await message.answer("В базе нет сообщений")
             return
 
-        content = "\n".join(f"{full_name}: {text}" for full_name, text in rows)
+        content = "\n".join(f"{user_id or '?'} | {full_name}: {text}" for user_id, full_name, text in rows)
         file = BufferedInputFile(content.encode("utf-8"), filename="messages.txt")
 
         await message.answer_document(
@@ -543,4 +551,4 @@ async def broadcast_confirm(message: Message,state: FSMContext):
 
 @router.message()
 async def on_any_message(message: Message):
-    await add_message_to_db(message.from_user.full_name, message.text)
+    await add_message_to_db(message.from_user.id, message.from_user.full_name, message.text)
