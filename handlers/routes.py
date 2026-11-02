@@ -1,6 +1,5 @@
-
-from aiogram import Router
-from aiogram.filters import Command
+from aiogram import Router, Bot
+from aiogram.filters import Command, CommandObject
 from aiogram.types import (
     Message,
     CallbackQuery,
@@ -12,7 +11,7 @@ from aiogram.types import (
 )
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
-from aiogram.exceptions import TelegramRetryAfter, TelegramForbiddenError
+from aiogram.exceptions import TelegramRetryAfter, TelegramForbiddenError, TelegramBadRequest
 from handlers.inline_keyboards import *
 
 from asyncio import sleep
@@ -32,15 +31,23 @@ import aiosqlite
 DB_NAME = "redlinebot.sql"
 DB_MESSAGES_NAME = "messages.sql"
 
+_schema_ready = False
+
 async def init_db():
     async with aiosqlite.connect(DB_NAME) as db:
         await db.execute("""
                         CREATE TABLE IF NOT EXISTS users (
                                         id INTEGER PRIMARY KEY,
                                         user_id INTEGER UNIQUE,
-                                        full_name TEXT
+                                        full_name TEXT,
+                                        username TEXT
                         )
                         """)
+        # Миграция: добавляем колонку username в уже существующую таблицу
+        cursor = await db.execute("PRAGMA table_info(users)")
+        columns = [row[1] for row in await cursor.fetchall()]
+        if "username" not in columns:
+            await db.execute("ALTER TABLE users ADD COLUMN username TEXT")
         await db.commit()
     async with aiosqlite.connect(DB_MESSAGES_NAME) as db1:
         await db1.execute("""
@@ -51,6 +58,13 @@ async def init_db():
                         )
                         """)
         await db1.commit()
+
+async def ensure_schema():
+    """Один раз за запуск бота проверяет, что в таблице users есть колонка username."""
+    global _schema_ready
+    if not _schema_ready:
+        await init_db()
+        _schema_ready = True
 
 async def add_message_to_db(full_name: str, message_text: str):
     async with aiosqlite.connect(DB_MESSAGES_NAME) as db:
@@ -66,10 +80,28 @@ async def get_messages():
         result = await cursor.fetchall()
         return result
 
-async def add_user(user_id, full_name):
+async def add_user(user_id, full_name, username=None):
+    await ensure_schema()
     async with aiosqlite.connect(DB_NAME) as db:
-        await db.execute("INSERT OR IGNORE INTO users (user_id, full_name) VALUES(?, ?)", (user_id,full_name))
+        # Если пользователь уже есть - обновляем имя и username
+        await db.execute(
+            """INSERT INTO users (user_id, full_name, username) VALUES(?, ?, ?)
+               ON CONFLICT(user_id) DO UPDATE SET
+                   full_name = excluded.full_name,
+                   username = excluded.username""",
+            (user_id, full_name, username)
+        )
         await db.commit()
+
+async def get_username_from_db(user_id):
+    """Возвращает (found, username). found=False, если пользователя нет в базе."""
+    await ensure_schema()
+    async with aiosqlite.connect(DB_NAME) as db:
+        cursor = await db.execute("SELECT username FROM users WHERE user_id = ?", (user_id,))
+        row = await cursor.fetchone()
+        if row is None:
+            return False, None
+        return True, row[0]
 
 async def remove_user(user_id):
     async with aiosqlite.connect(DB_NAME) as db:
@@ -344,7 +376,7 @@ async def on_gpt(callback: CallbackQuery):
 @router.message(Command("start"))
 async def on_start(message: Message):
     await init_db()
-    await add_user(message.from_user.id, message.from_user.full_name)
+    await add_user(message.from_user.id, message.from_user.full_name, message.from_user.username)
 
     await message.answer_photo(photo=FSInputFile("Images/redline_shop_1.png"),caption='Добро пожаловать, вас встречает бот магазина [ReDLine Shop 🤑](https://t.me/mobilegemss) \n'
                          '\n'
@@ -391,6 +423,41 @@ async def on_users(message: Message):
         )
     else:
         await message.answer("Нет доступа к админ панели")
+
+# Команда /username <id> - показывает @username пользователя по его id
+
+@router.message(Command("username"))
+async def on_username(message: Message, command: CommandObject, bot: Bot):
+    if str(message.from_user.id) not in ADM_IDS:
+        await message.answer("Нет доступа к админ панели")
+        return
+
+    if not command.args or not command.args.strip().isdigit():
+        await message.answer("Использование: /username <id>")
+        return
+
+    uid = int(command.args.strip())
+
+    # 1. Спрашиваем у Telegram актуальный username
+    try:
+        chat = await bot.get_chat(uid)
+        username = chat.username
+        full_name = chat.full_name
+        # Обновляем данные в базе, только если пользователь там уже есть
+        found, _ = await get_username_from_db(uid)
+        if found:
+            await add_user(uid, full_name, username)
+    except (TelegramBadRequest, TelegramForbiddenError):
+        # 2. Если Telegram отказал - берём сохранённое значение из базы
+        found, username = await get_username_from_db(uid)
+        if not found:
+            await message.answer("Пользователь не найден.")
+            return
+
+    if username:
+        await message.answer(f"@{username}")
+    else:
+        await message.answer("У этого пользователя нет username.")
 
 @router.message(Command("messages"))
 async def on_messages(message: Message):
