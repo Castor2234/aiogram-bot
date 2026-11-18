@@ -280,6 +280,58 @@ async def on_brawl_67(callback: CallbackQuery):
     )
     await callback.answer()
 
+@router.callback_query(lambda c: c.data == "brawl_boost")
+async def on_brawl_boost(callback: CallbackQuery):
+    await callback.message.edit_media(
+        media=InputMediaPhoto(media=FSInputFile("Images/brawl_boost.jpg"),
+                              caption="""
+🔥БУСТ КУБКОВ, РАНГОВ И ЛИГ В BRAWL STARS!
+
+Напоминаем, что в ReDLine Shop доступен сервис профессиональной прокачки аккаунтов Brawl Stars!
+🏆Наши услуги:
+🔴Буст кубков на отдельных бойцах
+🔴Поднятие общих кубков аккаунта
+🔴Буст праймов — от 1 до 3 прайма
+🔴Прокачка с персональным бустером в команде
+🔴Ап мастерства, побед подряд и любые другие вопросы решаем.
+<blockquote>💎СТОИМОСТЬ И СРОКИ
+У нас премиальный сервис, поэтому стоимость рассчитывается индивидуально. Цена зависит от выбранного бойца, уровня прокачки, текущего количества кубков и сложности заказа.
+⏳Срок выполнения: от 1 до 7 суток и более, в зависимости от сложности буста.
+Прокачкой занимается команда опытных бустеров, а не я лично.
+Можно заказать совместную игру с бустером на своём аккаунте. Это более безопасный вариант, однако стоимость выше, а выполнение может занять больше времени.</blockquote>
+⚠️ВАЖНО: При передаче аккаунта всегда существует риск блокировки со стороны разработчиков игры. Заказывая услугу, вы принимаете этот риск.
+""", parse_mode="HTML"),
+        reply_markup=back_to_brawl_inline_keyboard()
+    )
+    await callback.answer()
+
+@router.callback_query(lambda c: c.data == "brawl_cheats")
+async def on_brawl_boost(callback: CallbackQuery):
+    await callback.message.edit_media(
+        media=InputMediaPhoto(media=FSInputFile("Images/brawl_cheats.jpg"),
+                              caption="""
+🔥ЧИТЫ ДЛЯ BRAWL STARS!
+
+🎮 Теперь у нас можно приобрести читы для Brawl Stars!
+🌟Навсегда чит: 2999 руб - 115 BYN - 40 $
+
+⚡️ Дополнительные возможности и функции: Aim - авто наводка, авто уклонение, новый визуал и не только.
+⚠️ ВАЖНО! ПЕРЕД ПОКУПКОЙ ОЗНАКОМЬТЕСЬ!
+<blockquote>
+🚨 Использование читов нарушает правила Brawl Stars.
+❗️ Бан может быть как временным, так и навсегда, с потерей всего прогресса, скинов, покупок и достижений.
+🛡 НАША РЕКОМЕНДАЦИЯ:
+Используйте только дополнительные аккаунты (твинки).
+Не рискуйте своим основным аккаунтом.
+Помните, что даже использование читов на твинке не гарантирует безопасность других аккаунтов.
+Все риски блокировки необходимо учитывать заранее.
+</blockquote>
+<a href="https://youtu.be/XuiJFCxjj-U?si=pEVCI2j8np_UUY9z">подробный ролик</a>
+""", parse_mode="HTML"),
+        reply_markup=back_to_brawl_inline_keyboard()
+    )
+    await callback.answer()
+
 @router.callback_query(lambda c: c.data == "stalker2")
 async def on_brawl_stars(callback: CallbackQuery):
     await callback.message.edit_media(
@@ -379,6 +431,52 @@ async def on_gpt(callback: CallbackQuery):
     )
     await callback.answer()
 
+@router.callback_query(lambda c: c.data == "vpn")
+async def on_gpt(callback: CallbackQuery):
+    await callback.message.edit_media(
+        media=InputMediaPhoto(media=FSInputFile("Images/vpn.jpg"),
+                              caption="""
+🚀 ЗАПУСК - 👑ReDLine VPN — СВОБОДА В ИНТЕРНЕТЕ!
+
+👑 Premium VPN для комфортного сёрфинга, стабильного соединения и доступа к нужным ресурсам!
+
+💎 СТОИМОСТЬ:
+• 1 месяц VPN - 1199 руб - 50 BYN - 18 $
+
+<blockquote>Более скоростные тарифы, длительнее, больше стран в VIP ВЕРСИИ - подробнее лс</blockquote>
+""",
+                              parse_mode="HTML"
+                              ),
+        reply_markup=backward_inline_keyboard()
+    )
+    await callback.answer()
+
+@router.callback_query(lambda c: c.data == "referal")
+async def on_referal(callback: CallbackQuery):
+    await callback.message.edit_media(
+        media=InputMediaPhoto(media=FSInputFile("Images/referal.jpg"),
+                              caption="""
+💎 <b>РЕФЕРАЛЬНАЯ ПРОГРАММА ReDLine Shop</b>
+
+🔥 Приглашай друзей и получай <b>10% с каждого их заказа!</b>
+Рекомендуй наш магазин — донат в игры, подписки и другие цифровые товары — и зарабатывай. Никаких регистраций и вложений!
+━━━━━━━━━━━━━━━━
+🚀 <b>КАК ЭТО РАБОТАЕТ?</b>
+1️⃣ Рекомендуешь ReDLine Shop друзьям или своей аудитории.
+2️⃣ Друг при заказе называет, от кого пришёл: твои имя и фамилию («Я от Ивана Иванова») или Telegram-ник («Я от @username»). Это и есть твой реферальный код.
+3️⃣ Мы вручную записываем заказ и твоё вознаграждение.
+4️⃣ После выполнения и оплаты заказа получаешь <b>10% от полной суммы</b> покупки, а не от прибыли магазина.
+
+Вывод — на карту или на заказ. В программе участвует вся продукция магазина!
+<blockquote>📩 <b>КАК НАЧАТЬ?</b>
+Напиши нам, что хочешь участвовать, и укажи имя и фамилию или Telegram-ник — и можно приглашать!</blockquote>
+""",
+                              parse_mode="HTML"
+                              ),
+        reply_markup=backward_inline_keyboard()
+    )
+    await callback.answer()
+
 # Отсюда начинаются команды
 
 @router.message(Command("start"))
@@ -390,7 +488,7 @@ async def on_start(message: Message):
                          '\n'
                          'Для просмотра цен на донаты нажмите на кнопку Каталог под сообщением 😎 \n'
                          '\n'
-                         'При проблемах с ботом или для покупки доната писать [Артуру](https://t.me/Mobile_Game_YT1) 🤖'
+                         'Для покупки любого доната или при проблемах с ботом писать [Артуру](https://t.me/Mobile_Game_YT1) 🤖'
                          ,reply_markup=start_inline_keyboard()
                          ,parse_mode="MarkdownV2")
 
@@ -400,17 +498,6 @@ async def on_catalog_command(message: Message):
                                caption='<b>Выберите игру из каталога товаров:</b>',
                                reply_markup=catalog_inline_keyboard(),
                                parse_mode="HTML")
-
-@router.message(Command("menu"))
-async def on_menu_command(message: Message):
-    await message.answer_photo(photo=FSInputFile("Images/redline_shop_1.png"),
-                              caption="Для просмотра цен на донаты нажмите на кнопку <b>Каталог</b> под сообщением 😎\n"
-                                      "\n"
-                                      'Чтобы купить донат напишите <a href="https://t.me/Mobile_Game_YT1">Артуру</a> в лс название доната и способ, которым вы хотите его купить. \n'
-                                      '\n'
-                                      'Для покупки акции, которой нет в списке, скиньте <b>фото/скриншот</b> акции <a href="https://t.me/Mobile_Game_YT1">Артуру</a> в лс.',
-                              reply_markup=start_inline_keyboard(),
-                              parse_mode="HTML")
 
 @router.message(Command("users"))
 async def on_users(message: Message):
