@@ -30,6 +30,7 @@ import aiosqlite
 
 DB_NAME = "redlinebot.sql"
 DB_MESSAGES_NAME = "messages.sql"
+MAX_MESSAGES = 200
 
 _schema_ready = False
 
@@ -79,6 +80,10 @@ async def add_message_to_db(user_id: int, full_name: str, message_text: str):
             "INSERT INTO messages (user_id, full_name, message) VALUES (?, ?, ?)",
             (user_id, full_name, message_text)
         )
+        # Ограничение: храним не более MAX_MESSAGES последних сообщений
+        await db.execute(
+            f"DELETE FROM messages WHERE id NOT IN (SELECT id FROM messages ORDER BY id DESC LIMIT {MAX_MESSAGES})"
+        )
         await db.commit()
 
 async def get_messages():
@@ -87,6 +92,20 @@ async def get_messages():
         cursor = await db.execute("SELECT user_id, full_name, message FROM messages")
         result = await cursor.fetchall()
         return result
+
+async def get_games():
+    await ensure_schema()
+    async with aiosqlite.connect(DB_MESSAGES_NAME) as db:
+        cursor = await db.execute("SELECT id, user_id, full_name, message FROM messages ORDER BY id")
+        result = await cursor.fetchall()
+        return result
+
+async def delete_message_by_id(message_id: int) -> int:
+    await ensure_schema()
+    async with aiosqlite.connect(DB_MESSAGES_NAME) as db:
+        cursor = await db.execute("DELETE FROM messages WHERE id = ?", (message_id,))
+        await db.commit()
+        return cursor.rowcount
 
 async def add_user(user_id, full_name, username=None):
     await ensure_schema()
@@ -154,6 +173,7 @@ router = Router()
 class Form(StatesGroup):
     br_message = State()
     yes_or_no = State()
+    suggest_game = State()
 
 # --- FSM context machine конец
 
@@ -508,6 +528,16 @@ async def on_referal(callback: CallbackQuery):
     )
     await callback.answer()
 
+
+@router.callback_query(lambda c: c.data == "suggest")
+async def on_suggest(callback: CallbackQuery, state: FSMContext):
+    await state.set_state(Form.suggest_game)
+    await callback.message.answer(
+        "Введите название игры, которую вы хотите предложить добавить в каталог:"
+    )
+    await callback.answer()
+
+
 # Отсюда начинаются команды
 
 @router.message(Command("start"))
@@ -603,6 +633,58 @@ async def on_messages(message: Message):
         )
     else:
         await message.answer("Нет доступа к админ панели")
+
+
+@router.message(Command("games"))
+async def on_games(message: Message):
+    if str(message.from_user.id) in ADM_IDS:
+        rows = await get_games()
+
+        if not rows:
+            await message.answer("В базе нет предложений игр")
+            return
+
+        content = "\n".join(f"{row_id} - {text}" for row_id, _, _, text in rows)
+        file = BufferedInputFile(content.encode("utf-8"), filename="games.txt")
+
+        await message.answer_document(
+            document=file,
+            caption=f"Всего предложений: {len(rows)}"
+        )
+    else:
+        await message.answer("Нет доступа к админ панели")
+
+
+@router.message(Command("delete"))
+async def on_delete(message: Message, command: CommandObject):
+    if str(message.from_user.id) not in ADM_IDS:
+        await message.answer("Нет доступа к админ панели")
+        return
+
+    if not command.args or not command.args.strip().isdigit():
+        await message.answer("Использование: /delete <id>")
+        return
+
+    message_id = int(command.args.strip())
+    deleted = await delete_message_by_id(message_id)
+
+    if deleted:
+        await message.answer(f"Сообщение с ID {message_id} удалено из базы.")
+    else:
+        await message.answer(f"Сообщение с ID {message_id} не найдено.")
+
+
+@router.message(Form.suggest_game)
+async def on_suggest_game(message: Message, state: FSMContext):
+    game_name = (message.text or "").strip()
+    if not game_name:
+        await message.answer("Пожалуйста, введите текстовое название игры.")
+        return
+
+    await add_message_to_db(message.from_user.id, message.from_user.full_name, game_name)
+    await state.clear()
+    await message.answer(f"Спасибо! Предложение «{game_name}» отправлено.")
+
 
 # Broadcast начало
 

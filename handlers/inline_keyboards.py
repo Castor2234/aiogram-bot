@@ -27,6 +27,7 @@ def catalog_inline_keyboard():
             [InlineKeyboardButton(text="TikTok", callback_data="tiktok"), InlineKeyboardButton(text="Telegram", callback_data="telegram")], 
             [InlineKeyboardButton(text="🤖 ChatGPT 🤖", callback_data="gpt")],
             [InlineKeyboardButton(text="🌐 VPN 🌐", callback_data="vpn")],
+            [InlineKeyboardButton(text="Не нашел игру?", style=ButtonStyle.DANGER ,callback_data="suggest")],
             [InlineKeyboardButton(text="Назад в меню", style=ButtonStyle.PRIMARY ,callback_data="menu")]
         ]
     )
