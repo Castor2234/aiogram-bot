@@ -23,7 +23,8 @@ def catalog_inline_keyboard():
             [InlineKeyboardButton(text="🏆 Brawl Stars 🏆", callback_data="brawl")],
             [InlineKeyboardButton(text="Clash Royale", callback_data="clash_royal"),InlineKeyboardButton(text="Sim City Buildit", callback_data="sim_city")],
             [InlineKeyboardButton(text="☢ S.T.A.L.K.E.R. 2 ☢", callback_data="stalker2")],
-            [InlineKeyboardButton(text="TikTok Валюта", callback_data="tiktok"), InlineKeyboardButton(text="Telegram Плюшки", callback_data="telegram")], 
+            [InlineKeyboardButton(text="🥩 Butcher Hero 🥩", callback_data="butcher_hero")],
+            [InlineKeyboardButton(text="TikTok", callback_data="tiktok"), InlineKeyboardButton(text="Telegram", callback_data="telegram")], 
             [InlineKeyboardButton(text="🤖 ChatGPT 🤖", callback_data="gpt")],
             [InlineKeyboardButton(text="🌐 VPN 🌐", callback_data="vpn")],
             [InlineKeyboardButton(text="Назад в меню", style=ButtonStyle.PRIMARY ,callback_data="menu")]

@@ -354,6 +354,37 @@ async def on_brawl_stars(callback: CallbackQuery):
     )
     await callback.answer()
 
+@router.callback_query(lambda c: c.data == "butcher_hero")
+async def on_butcher_hero(callback: CallbackQuery):
+    await callback.message.edit_media(
+        media=InputMediaPhoto(media=FSInputFile("Images/butcher_hero.jpg"),
+                              caption="""
+💎Хочешь приобрести донат в Butcher Hero, но не получается оплатить покупку из России или Беларуси? Мы поможем!
+
+200 самоцветов - 899 руб - 35 BYN
+500 самоцветов - 1599 руб - 62 BYN
+1200 самоцветов - 2999 руб - 117 BYN
+2500 самоцветов - 5999 руб - 230 BYN
+6500 самоцветов - 12499 руб - 480 BYN
+14000 самоцветов - 24999 руб - 940 BYN
+Пассы, рекламу, акции тоже покупаю!
+
+<blockquote>
+🔥ЧТО МОЖНО ЗАКАЗАТЬ?
+💎Игровую валюту и ресурсы
+📦Специальные наборы и паки
+👑Премиум-предложения
+🎟Боевые пропуски
+🎁Акционные предложения и многое другое!
+</blockquote>
+
+                              """,
+                              parse_mode="HTML"
+                              ),
+        reply_markup=backward_inline_keyboard()
+    )
+    await callback.answer()
+
 @router.callback_query(lambda c: c.data == "tiktok")
 async def on_tiktok(callback: CallbackQuery):
     await callback.message.edit_media(
